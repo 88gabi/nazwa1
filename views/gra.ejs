@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <h1 ><%=title%></h1>
+</head>
+<body>
+  <p id="zakryty"></p>
+  <div>
+    <input type="text" name="litera" id="litera" maxlength="1" minlength="1">
+    <button id="przyc">Sprawdz litere!</button></form>
+  </div>
+  <p id="wyg"></p>
+</body>
+<script>
+  slowo1 = "<%=naz%>"
+  grac = true;
+  zakryte = []
+  slowo = slowo1.split('')
+  for (let i = 0; i < slowo.length; i++) {
+    zakryte.push('[ ]')
+  }
+  document.getElementById("zakryty").innerText = zakryte;
+  document.getElementById("przyc").addEventListener("click", () => {
+    var litera = document.getElementById('litera').value;
+    for (let i = 0; i < slowo.length; i++) {
+      if (slowo[i] == litera) {
+        zakryte[i] = '[' + litera + ']';
+      }
+    }
+    gra = false;
+    for (let i = 0; i < slowo.length; i++) {
+      if (zakryte[i] == '[ ]') {
+        gra = true;
+      }
+    }
+    if (gra == false) {
+      document.getElementById("wyg").innerText = "Wygrales";
+      document.getElementById("litera").style.display = 'none';
+      document.getElementById("przyc").style.display = 'none';
+    }
+    document.getElementById("zakryty").innerText = zakryte;
+  });
+</script>
+</html>
