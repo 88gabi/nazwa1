@@ -1,9 +1,6 @@
 import express from "express";
 import wisielec, { gra, ile, ileplus } from "./models/wisi.js";
-
 const port = 8000;
-
-
 const app = express();
 app.set("view engine", "ejs");
 app.use(express.static("public"));
