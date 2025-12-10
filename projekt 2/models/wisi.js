@@ -16,16 +16,7 @@ db.exec(
     word          TEXT NOT NULL
   ) STRICT;`
 );
-const db_ops = {
-  insert_category: db.prepare(
-    `INSERT INTO fc_categories (id, name)
-        VALUES (?, ?) RETURNING category_id, id, name;`
-  ),
-  insert_card: db.prepare(
-    `INSERT INTO fc_cards (category_id, front, back) 
-        VALUES (?, ?, ?) RETURNING id, front, back;`
-  ),
-};
+
 const card_categories = {
   'zwierze': {
     name: "zwierze",
@@ -46,36 +37,77 @@ const card_categories = {
   }
   
 };
+
+const db_ops = {
+  insert_category: db.prepare(
+    `INSERT INTO categories (id, name)
+        VALUES (?, ?) RETURNING category_id, id, name;`
+  ),
+
+  insert_card: db.prepare(
+    `INSERT INTO words (cat_id, word) 
+        VALUES (?, ?) RETURNING id, word;`
+  ),
+
+  insert_card_by_id: db.prepare(
+    `INSERT INTO words (cat_id, word) VALUES (
+      (SELECT category_id FROM categories WHERE id = ?),
+      ?
+    )
+    RETURNING id, word;`
+  ),
+
+  get_categories: db.prepare(
+    "SELECT id, name FROM categories;"
+  ),
+
+  get_category_by_id: db.prepare(
+    "SELECT category_id, id, name FROM categories WHERE id = ?;"
+  ),
+
+  get_cards_by_category_id: db.prepare(
+    "SELECT id, word FROM words WHERE cat_id = ?;"
+  ),
+};
+
 if (process.env.POPULATE_DB) {
   console.log("Populating db...");
   Object.entries(card_categories).map(([id, data]) => {
+
     let category = db_ops.insert_category.get(id, data.name);
     console.log("Created category:", category);
-    for (let card of data.cards) {
+
+    for (let card of data.slowo) {
       let c = db_ops.insert_card.get(
         category.category_id,
-        card.front,
-        card.back
+        card.text
       );
+
       console.log("Created card:", c);
     }
   });
 }
 export function getCategorySummaries() {
-  return Object.entries(card_categories).map(([id, category,i]) => (category.name))
+  var categories = db_ops.get_categories.all();
+  return categories;
+  
 }
 export function hasCategory(categoryId) {
-  return card_categories.hasOwnProperty(categoryId);
+  let category = db_ops.get_category_by_id.get(categoryId);
+  return category != null;
 }
 
 export function getCategory(categoryId) {
-  if (hasCategory(categoryId))
-    return { id: categoryId, ...card_categories[categoryId] };
+  let category = db_ops.get_category_by_id.get(categoryId);
+  if (category != null) {
+    category.card = db_ops.get_cards_by_category_id.all(category.category_id);
+    return category;
+  }
   return null;
 }
 
 export function addCard(categoryId, card) {
-  if (hasCategory(categoryId)) card_categories[categoryId].slowo.push(card);
+  return db_ops.insert_card_by_id.get(categoryId, card.text);
 }
 export function ile(categoryId) {
     return card_categories[categoryId].ile;
