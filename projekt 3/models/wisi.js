@@ -1,86 +1,82 @@
 import { DatabaseSync } from "node:sqlite";
-
 const db_path = "./db.sqlite";
 const db = new DatabaseSync(db_path);
-
 console.log("Creating database tables");
 db.exec(
-  `CREATE TABLE IF NOT EXISTS categories (
-    category_id   INTEGER PRIMARY KEY,
-    id            TEXT UNIQUE NOT NULL,
-    name          TEXT NOT NULL
+  `CREATE TABLE IF NOT EXISTS kategorie (
+    id_kategori   INTEGER PRIMARY KEY,
+    nazwa          text UNIQUE NOT NULL
   ) STRICT;
-  CREATE TABLE IF NOT EXISTS words (
+  CREATE TABLE IF NOT EXISTS slowa (
     id            INTEGER PRIMARY KEY,
-    cat_id   INTEGER NOT NULL REFERENCES categories(category_id) ON DELETE NO ACTION,
-    word          TEXT NOT NULL
+    id_kategori   INTEGER NOT NULL REFERENCES kategorie(id_kategori) ON DELETE NO ACTION,
+    slowo          text NOT NULL
   ) STRICT;`
 );
 
-const card_categories = {
+const kategorie_kart = {
   'zwierze': {
-    name: "zwierze",
+    nazwa_kategori: "zwierze",
     slowo: [
-      { num: 0, text: "pies" },
-      { num: 1, text: "krowa" }
+      { numer_karty: 0, tekst: "pies" },
+      { numer_karty: 1, tekst: "krowa" }
     ],
-    ile:2
+    ile_slow:2
   },
   'owoce': {
-    name: "owoce",
+    nazwa_kategori: "owoce",
     slowo: [
-      { num: 0, text: "pomidor" },
-      { num: 1, text: "jagoda" }
+      { numer_karty: 0, tekst: "pomidor" },
+      { numer_karty: 1, tekst: "jagoda" }
     ]
     ,
-    ile:2
+    ile_slow:2
   }
   
 };
 
 const db_ops = {
   insert_category: db.prepare(
-    `INSERT INTO categories (id, name)
-        VALUES (?, ?) RETURNING category_id, id, name;`
+    `INSERT INTO kategorie (nazwa)
+        VALUES (?) RETURNING id_kategori, nazwa;`
   ),
 
   insert_card: db.prepare(
-    `INSERT INTO words (cat_id, word) 
-        VALUES (?, ?) RETURNING id, word;`
+    `INSERT INTO slowa (id_kategori, slowo) 
+        VALUES (?, ?) RETURNING id, slowo;`
   ),
 
   insert_card_by_id: db.prepare(
-    `INSERT INTO words (cat_id, word) VALUES (
-      (SELECT category_id FROM categories WHERE id = ?),
+    `INSERT INTO slowa (id_kategori, slowo) VALUES (
+      (SELECT id_kategori FROM kategorie WHERE nazwa = ?),
       ?
     )
-    RETURNING id, word;`
+    RETURNING id, slowo;`
   ),
 
-  get_categories: db.prepare(
-    "SELECT id, name FROM categories;"
+  get_kategorie: db.prepare(
+    "SELECT nazwa FROM kategorie;"
   ),
 
   get_category_by_id: db.prepare(
-    "SELECT category_id, id, name FROM categories WHERE id = ?;"
+    "SELECT id_kategori, nazwa FROM kategorie WHERE nazwa = ?;"
   ),
 
-  get_cards_by_category_id: db.prepare(
-    "SELECT id, word FROM words WHERE cat_id = ?;"
+  get_cards_by_id_kategori: db.prepare(
+    "SELECT id, slowo FROM slowa WHERE id_kategori = ?;"
   ),
 };
 
 if (process.env.POPULATE_DB) {
   console.log("Populating db...");
-  Object.entries(card_categories).map(([id, data]) => {
-
-    let category = db_ops.insert_category.get(id, data.name);
+  Object.entries(kategorie_kart).map(([id, data]) => {
+    let category = db_ops.insert_category.get(id);
     console.log("Created category:", category);
 
     for (let card of data.slowo) {
       let c = db_ops.insert_card.get(
-        category.category_id,
-        card.text
+        category.id_kategori,
+        card.tekst
       );
 
       console.log("Created card:", c);
@@ -88,46 +84,45 @@ if (process.env.POPULATE_DB) {
   });
 }
 export function getCategorySummaries() {
-  var categories = db_ops.get_categories.all();
-  return categories;
+  let kategorie = db_ops.get_kategorie.all();
+  return kategorie;
   
 }
-export function hasCategory(categoryId) {
-  let category = db_ops.get_category_by_id.get(categoryId);
+export function hasCategory(nazwa) {
+  let category = db_ops.get_category_by_id.get(nazwa);
   return category != null;
 }
 
-export function getCategory(categoryId) {
-  let category = db_ops.get_category_by_id.get(categoryId);
+export function getCategory(nazwa) {
+  let category = db_ops.get_category_by_id.get(nazwa);
   if (category != null) {
-    category.card = db_ops.get_cards_by_category_id.all(category.category_id);
+    category.card = db_ops.get_cards_by_id_kategori.all(category.id_kategori);
     return category;
   }
   return null;
 }
-
 export function addCard(categoryId, card) {
-  return db_ops.insert_card_by_id.get(categoryId, card.text);
+  return db_ops.insert_card_by_id.get(categoryId, card.tekst);
 }
-export function ile(categoryId) {
-    return card_categories[categoryId].ile;
+export function ile_slow(categoryId) {
+    return kategorie_kart[categoryId].ile_slow;
 }
-export function ileplus(categoryId){
-     card_categories[categoryId].ile= card_categories[categoryId].ile+1;
+export function ile_slowplus(categoryId){
+     kategorie_kart[categoryId].ile_slow= kategorie_kart[categoryId].ile_slow+1;
 }
-export function gra(id,numer){
-    const kopia={...card_categories[id].slowo[numer]};
-    const zwierze=kopia.text;
-    return zwierze
+export function gra(id,numer_karty){
+    const kopia={...kategorie_kart[id].slowo[numer_karty]};
+    const zgadywane_slowo=kopia.tekst;
+    return zgadywane_slowo
 }
 export function validateCardData(card) {
   var errors = [];
-    if (!card.hasOwnProperty(text)) errors.push(`Missing text '`);
+    if (!card.hasOwnProperty(tekst)) errors.push(`Missing tekst '`);
     else {
-      if (typeof card[text] != "string")
+      if (typeof card[tekst] != "string")
         errors.push(` expected to be string`);
       else {
-        if (card[text].length < 1 || card[field].length > 50)
+        if (card[tekst].length < 1 || card[field].length > 50)
           errors.push(`'${field}' expected length: 1-50`);
     
     }
@@ -139,6 +134,6 @@ export default {
   hasCategory,
   getCategory,
   addCard,
-  ile,
+  ile_slow,
   gra,
 };

@@ -7,11 +7,8 @@
   <title>
     <%= title %>
   </title>
-
   <link rel="stylesheet"  type="text/css"   href="/css/style.css" />
-
 </head>
-
 <body>
   <main>
     <h1>
@@ -20,14 +17,14 @@
     <ul id="kategoria">
       <% kategoria.card.forEach(function(slowo){ %>
         <li>
-          <%= slowo.word%>
+          <%= slowo.slowo%>
         </li>
         <% }) %>
-          <li><a href="/<%= kategoria.name%>/graj">Losuj wyraz i graj</a>
+          <li><a href="/<%= kategoria.nazwa%>/graj">Losuj wyraz i graj</a>
     </ul>
   </main>
   <div>
-    <h3>Nowe slowo</h3>
+    <h3>Nowe słowo</h3>
     <%- include("forms/new_form.ejs") %>
   </div>
 </body>

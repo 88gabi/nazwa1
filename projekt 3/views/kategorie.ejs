@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
     <link rel="stylesheet"  type="text/css"  href="/css/style.css" />
-
-
   </head>
   <body>
     <main>
       <h1><%= title %></h1>
       <ul id="kategorie">
         <% kategorie.forEach(function(kategoria){ %>
-        <li><a href="/<%= kategoria.name%>"><%= kategoria.name%></a></li>
+        <li><a href="/<%= kategoria.nazwa%>"><%= kategoria.nazwa%></a></li>
         <% }) %>
       </ul>
     </main>

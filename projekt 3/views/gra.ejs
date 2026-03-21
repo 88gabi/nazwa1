@@ -14,9 +14,11 @@
   <p id="zakryty"></p>
   <div>
     <input type="text" name="litera" id="litera" maxlength="1" minlength="1">
-    <button id="przyc">Sprawdz litere!</button></form>
+    <button id="przyc">Sprawdź litere!</button></form>
   </div>
   <p id="wyg"></p>
+  <p id="zla_lit">Zła litera</p>
+  <a id="link" style="display:none;" href='/zwierze/graj'>Od nowa</a>
 </body>
 <script>
   slowo1 = "<%=naz%>"
@@ -26,12 +28,17 @@
   for (let i = 0; i < slowo.length; i++) {
     zakryte.push('[ ]')
   }
+  document.getElementById("zla_lit").style.display = 'none';
   document.getElementById("zakryty").innerText = zakryte;
   document.getElementById("przyc").addEventListener("click", () => {
     var litera = document.getElementById('litera').value;
     for (let i = 0; i < slowo.length; i++) {
       if (slowo[i] == litera) {
         zakryte[i] = '[' + litera + ']';
+         document.getElementById("zla_lit").style.display = 'none';
+      }
+      else{
+         document.getElementById("zla_lit").style.display = 'inline';
       }
     }
     gra = false;
@@ -41,9 +48,10 @@
       }
     }
     if (gra == false) {
-      document.getElementById("wyg").innerText = "Wygrales";
+      document.getElementById("wyg").innerText = "Wygrałeś!";
       document.getElementById("litera").style.display = 'none';
       document.getElementById("przyc").style.display = 'none';
+      document.getElementById("link").style.display = 'inline';
     }
     document.getElementById("zakryty").innerText = zakryte;
   });
