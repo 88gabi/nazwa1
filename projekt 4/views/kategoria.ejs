@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet"  type="text/css"   href="/css/style.css" />
+</head>
+<body>
+  <main>
+    <h1>
+      <%= title %>
+    </h1>
+    <ul id="kategoria">
+      <% kategoria.card.forEach(function(slowo){ %>
+        <li>
+          <%= slowo.slowo%>
+        </li>
+        <% }) %>
+          <li><a href="/<%= kategoria.nazwa%>/graj">Losuj wyraz i graj</a>
+    </ul>
+  </main>
+  <div>
+    <h3>Nowe słowo</h3>
+    <%- include("forms/new_form.ejs") %>
+  </div>
+</body>
+
+</html>
