@@ -1,10 +1,37 @@
 import express from "express";
 import wisielec, { gra, ile_slow, ile_slowplus } from "./models/wisi.js";
-const port = 8000;
+import session from "./models/session.js";
+import auth from "./controllers/auth.js";
+const port = process.env.PORT || 8000;
+const LAST_VIEWED_COOKIE = "__Host-fisz-last-viewed";
+const ONE_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH = 30 * ONE_DAY;
+const SECRET = process.env.SECRET;
+if (SECRET == null) {
+  console.error(
+    `SECRET environment variable missing.
+     Please create an env file or provide SECRET via environment variables.`,
+  );
+  process.exit(1);
+}
+
 const app = express();
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded());
+app.use(morgan("dev"));
+app.use(cookieParser(SECRET));
+app.use(settings.settingsHandler);
+app.use(session.sessionHandler);
+
+const authRouter = express.Router();
+authRouter.get("/signup", auth.signup_get);
+authRouter.post("/signup", auth.signup_post);
+authRouter.get("/login", auth.login_get);
+authRouter.post("/login", auth.login_post);
+authRouter.get("/logout", auth.logout);
+app.use("/auth", authRouter);
+
 app.get("/", (req, res) => {  
   res.render("kategorie", {
     title: "Kategorie wisielca",
