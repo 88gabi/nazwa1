@@ -1,0 +1,33 @@
+<form action="/<%=kategoria.nazwa%>/edit" method="POST">
+  <div>
+  <div>
+    <label for="slowo">Jakie słowo chcesz edytować:</label>
+    <input
+      type="text"
+      name="stare_slowo"
+      id="stare_slowo"
+      required
+      minlength="1"
+      maxlength="50"
+      <% if (locals.stare_slowo){ %>
+      value="<%= stare_slowo %>"
+      <% }%>
+    />
+  </div>
+    <label for="slowo">Zamień słowo:</label>
+    <input
+      type="text"
+      name="nowe_slowo"
+      id="nowe_slowo"
+      required
+      minlength="1"
+      maxlength="50"
+      <% if (locals.nowe_slowo){ %>
+      value="<%= nowe_slowo %>"
+      <% }%>
+    />
+  </div>
+  <div>
+    <button>Edytuj</button>
+  </div>
+</form>

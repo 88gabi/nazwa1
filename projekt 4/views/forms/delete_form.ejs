@@ -1,0 +1,20 @@
+<form action="/<%=kategoria.nazwa%>/delete" method="POST">
+  <div>
+  <div>
+    <label for="usun_slowo">Podaj słowo do usunięcia:</label>
+    <input
+      type="text"
+      name="usun_slowo"
+      id="usun_slowo"
+      required
+      minlength="1"
+      maxlength="50"
+      <% if (locals.usun_slowo){ %>
+      value="<%= usun_slowo %>"
+      <% }%>
+    />
+  </div>
+  <div>
+    <button>   Usuń</button>
+  </div>
+</form>

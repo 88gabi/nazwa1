@@ -5,7 +5,6 @@ const app = express();
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded());
-
 app.get("/", (req, res) => {  
   res.render("kategorie", {
     title: "Kategorie wisielca",
@@ -32,6 +31,24 @@ app.post("/:id_kategori/new", (req, res) => {
   } else {
     wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo});
     ile_slowplus(id_kategori)
+    res.redirect(`/${id_kategori}`);
+  }
+});
+app.post("/:id_kategori/edit", (req, res) => {
+  const id_kategori = req.params.id_kategori;
+  if (!wisielec.hasCategory(id_kategori)) {
+    res.sendStatus(404);
+  } else {
+    wisielec.editCard(id_kategori, {stare_slowo: req.body.stare_slowo,nowe_slowo: req.body.nowe_slowo});
+    res.redirect(`/${id_kategori}`);
+  }
+});
+app.post("/:id_kategori/delete", (req, res) => {
+  const id_kategori = req.params.id_kategori;
+  if (!wisielec.hasCategory(id_kategori)) {
+    res.sendStatus(404);
+  } else {
+    wisielec.deleteCard(id_kategori,  req.body.usun_slowo);
     res.redirect(`/${id_kategori}`);
   }
 });

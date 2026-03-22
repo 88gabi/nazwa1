@@ -1,5 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
 const db_path = "./db.sqlite";
+
 const db = new DatabaseSync(db_path);
 console.log("Creating database tables");
 db.exec(
@@ -61,12 +62,19 @@ const db_ops = {
   get_category_by_id: db.prepare(
     "SELECT id_kategori, nazwa FROM kategorie WHERE nazwa = ?;"
   ),
-
+  get_id_by_slowo: db.prepare(
+    "SELECT id FROM slowa WHERE slowo = ?;"
+  ),
   get_cards_by_id_kategori: db.prepare(
     "SELECT id, slowo FROM slowa WHERE id_kategori = ?;"
   ),
+  edit_cards_by_slowo: db.prepare(
+    "UPDATE slowa SET slowo = ? WHERE id = ? and id_kategori = ? RETURNING id, slowo;"
+  ),
+  delete_cards_by_slowo: db.prepare(
+    "DELETE FROM slowa WHERE id = ? and id_kategori = ? RETURNING id, slowo;"
+  ),
 };
-
 if (process.env.POPULATE_DB) {
   console.log("Populating db...");
   Object.entries(kategorie_kart).map(([id, data]) => {
@@ -92,7 +100,6 @@ export function hasCategory(nazwa) {
   let category = db_ops.get_category_by_id.get(nazwa);
   return category != null;
 }
-
 export function getCategory(nazwa) {
   let category = db_ops.get_category_by_id.get(nazwa);
   if (category != null) {
@@ -103,6 +110,21 @@ export function getCategory(nazwa) {
 }
 export function addCard(categoryId, card) {
   return db_ops.insert_card_by_id.get(categoryId, card.tekst);
+}
+export function addCategory(new_category) {
+  return db_ops.insert_category.get(new_category);
+}
+export function editCard(categoryId, card) {
+   let id=db_ops.get_id_by_slowo.get(card.stare_slowo);
+  let category = db_ops.get_category_by_id.get(categoryId);
+   if (id==null) return null; 
+  return db_ops.edit_cards_by_slowo.get(card.nowe_slowo,id.id, category.id_kategori);
+}
+export function deleteCard(categoryId,slowo) {
+   let id=db_ops.get_id_by_slowo.get(slowo);
+  let category = db_ops.get_category_by_id.get(categoryId);
+   if (id==null) return null; 
+  return db_ops.delete_cards_by_slowo.get(id.id,category.id_kategori);
 }
 export function ile_slow(categoryId) {
     return kategorie_kart[categoryId].ile_slow;
@@ -134,6 +156,8 @@ export default {
   hasCategory,
   getCategory,
   addCard,
+  editCard,
+  deleteCard,
   ile_slow,
   gra,
 };
