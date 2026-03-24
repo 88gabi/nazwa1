@@ -75,8 +75,8 @@ app.post("/:id_kategori/new",auth.login_required,(req, res) => {
 app.post("/:id_kategori/edit",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
-    res.sendStatus(404);
-  } else if(wisielec.cardEditableBy(req.body.stare_slowo,user)){
+    res.sendStatus(404);//POPRAAAAWIC ;)))))))))))))))))
+  } else if(wisielec.cardEditableBy(req.body.stare_slowo,res.locals.user)){
     wisielec.editCard(id_kategori, {stare_slowo: req.body.stare_slowo,nowe_slowo: req.body.nowe_slowo});
     res.redirect(`/${id_kategori}`);
   }

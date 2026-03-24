@@ -50,11 +50,11 @@ const db_ops = {
   ),
 
   insert_card_by_id: db.prepare(
-    `INSERT INTO slowa (id_kategori, slowo) VALUES (
+    `INSERT INTO slowa (id_kategori, slowo,author_id) VALUES (
       (SELECT id_kategori FROM kategorie WHERE nazwa = ?),
-      ?
+      ?,?
     )
-    RETURNING id, slowo;`
+    RETURNING id, slowo,author_id;`
   ),
 
   get_kategorie: db.prepare(
