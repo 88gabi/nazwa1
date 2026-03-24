@@ -1,3 +1,4 @@
+import user from "../models/user.js";
 import { DatabaseSync } from "node:sqlite";
 const db_path = "./db.sqlite";
 
@@ -11,7 +12,8 @@ db.exec(
   CREATE TABLE IF NOT EXISTS slowa (
     id            INTEGER PRIMARY KEY,
     id_kategori   INTEGER NOT NULL REFERENCES kategorie(id_kategori) ON DELETE NO ACTION,
-    slowo          text NOT NULL
+    slowo          text UNIQUE NOT NULL,
+    author_id     INTEGER NOT NULL REFERENCES fc_users(user_id) ON DELETE NO ACTION
   ) STRICT;`
 );
 
@@ -43,8 +45,8 @@ const db_ops = {
   ),
 
   insert_card: db.prepare(
-    `INSERT INTO slowa (id_kategori, slowo) 
-        VALUES (?, ?) RETURNING id, slowo;`
+    `INSERT INTO slowa (id_kategori, slowo,author_id) 
+        VALUES (?, ?,?) RETURNING id, slowo,author_id;`
   ),
 
   insert_card_by_id: db.prepare(
@@ -74,7 +76,18 @@ const db_ops = {
   delete_cards_by_slowo: db.prepare(
     "DELETE FROM slowa WHERE id = ? and id_kategori = ? RETURNING id, slowo;"
   ),
+  get_author_id_by_slowo :db.prepare(
+    "select author_id from slowa WHERE slowo = ?;")
 };
+let admin = await user.createUser("admin", "changeme");
+if (admin) {
+  let errMsg = user.addAttribute(admin.user_id, "is_admin", true);
+  if (errMsg) {
+    console.error(errMsg);
+  }
+}
+
+let student = await user.createUser("student", "changeme");
 if (process.env.POPULATE_DB) {
   console.log("Populating db...");
   Object.entries(kategorie_kart).map(([id, data]) => {
@@ -84,7 +97,8 @@ if (process.env.POPULATE_DB) {
     for (let card of data.slowo) {
       let c = db_ops.insert_card.get(
         category.id_kategori,
-        card.tekst
+        card.tekst,
+        student.user_id
       );
 
       console.log("Created card:", c);
@@ -108,8 +122,8 @@ export function getCategory(nazwa) {
   }
   return null;
 }
-export function addCard(categoryId, card) {
-  return db_ops.insert_card_by_id.get(categoryId, card.tekst);
+export function addCard(categoryId, card,user) {
+  return db_ops.insert_card_by_id.get(categoryId, card.tekst,user.user_id);
 }
 export function addCategory(new_category) {
   return db_ops.insert_category.get(new_category);
@@ -151,6 +165,9 @@ export function validateCardData(card) {
   }
   return errors;
 }
+function cardEditableBy(stare_slowo,user) {
+  return user != null && ( db_ops.get_author_id_by_slowo.get(stare_slowo).author_id === user.id || user.is_admin);
+}
 export default {
   getCategorySummaries,
   hasCategory,
@@ -160,4 +177,5 @@ export default {
   deleteCard,
   ile_slow,
   gra,
+  cardEditableBy,
 };

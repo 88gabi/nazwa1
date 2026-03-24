@@ -2,6 +2,7 @@ import { createSession, deleteSession } from "./../models/session.js";
 import { createUser, validatePassword } from "./../models/user.js";
 
 export function signup_get(req, res) {
+  let nextUrl = req.query.next;
   let form = {
     data: {},
     fields: signup_form_fields,
@@ -9,33 +10,41 @@ export function signup_get(req, res) {
     action: "/auth/signup",
     method: "POST",
   };
-  res.render("auth_signup", { title: "Rejestracja", form });
+  if (nextUrl) {
+    form.action = `/auth/signup?next=${encodeURIComponent(nextUrl)}`;
+  }
+  res.render("auth_signup", { title: "Rejestracja", form, nextUrl });
 }
 
 export async function signup_post(req, res) {
+  let nextUrl = req.query.next;
   let form = {
     data: getFormData(req, signup_form_fields),
     fields: signup_form_fields,
     action: "/auth/signup",
     method: "POST",
   };
+  if (nextUrl) {
+    form.action = `/auth/signup?next=${encodeURIComponent(nextUrl)}`;
+  }
   form.errors = validateForm(form.data, form.fields);
 
   if (Object.entries(form.errors).length == 0) {
     let user = await createUser(form.data["username"], form.data["password"]);
     if (user != null) {
       createSession(user.id, res);
-      res.redirect("/");
+      res.redirect(nextUrl || "/");
       return;
     } else {
       form.errors["username"] = "Użytkownik o podanej nazwie już istnieje";
     }
   }
 
-  res.render("auth_signup", { title: "Rejestracja", form });
+  res.render("auth_signup", { title: "Rejestracja", form, nextUrl });
 }
 
 export function login_get(req, res) {
+  let nextUrl = req.query.next;
   let form = {
     data: {},
     fields: login_form_fields,
@@ -43,16 +52,23 @@ export function login_get(req, res) {
     action: "/auth/login",
     method: "POST",
   };
-  res.render("auth_login", { title: "Logowanie", form });
+  if (nextUrl) {
+    form.action = `/auth/login?next=${encodeURIComponent(nextUrl)}`;
+  }
+  res.render("auth_login", { title: "Logowanie", form, nextUrl });
 }
 
 export async function login_post(req, res) {
+  let nextUrl = req.query.next;
   let form = {
     data: getFormData(req, login_form_fields),
     fields: login_form_fields,
     action: "/auth/login",
     method: "POST",
   };
+  if (nextUrl) {
+    form.action = `/auth/login?next=${encodeURIComponent(nextUrl)}`;
+  }
   form.errors = validateForm(form.data, form.fields);
 
   if (Object.entries(form.errors).length == 0) {
@@ -64,19 +80,28 @@ export async function login_post(req, res) {
       form.errors["username"] = "Niepoprawna nazwa użytkownika lub hasło";
     } else {
       createSession(user_id, res);
-      res.redirect("/");
+      res.redirect(nextUrl || "/");
       return;
     }
   }
 
-  res.render("auth_login", { title: "Logowanie", form });
+  res.render("auth_login", { title: "Logowanie", form, nextUrl });
 }
 
 function logout(req, res) {
   if (res.locals.user != null) {
     deleteSession(res);
   }
-  res.redirect("/");
+  let nextUrl = req.query.next;
+  res.redirect(nextUrl || "/");
+}
+
+function login_required(req, res, next) {
+  if (res.locals.user == null) {
+    res.redirect(`/auth/login?next=${encodeURIComponent(req.path)}`);
+    return;
+  }
+  next();
 }
 
 export default {
@@ -85,6 +110,7 @@ export default {
   signup_get,
   signup_post,
   logout,
+  login_required,
 };
 
 const login_form_fields = [

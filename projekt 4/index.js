@@ -1,7 +1,11 @@
+import "dotenv/config";
 import express from "express";
 import wisielec, { gra, ile_slow, ile_slowplus } from "./models/wisi.js";
 import session from "./models/session.js";
 import auth from "./controllers/auth.js";
+import settings from "./models/settings.js";
+import cookieParser from "cookie-parser";
+import user from "./models/user.js";
 const port = process.env.PORT || 8000;
 const LAST_VIEWED_COOKIE = "__Host-fisz-last-viewed";
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -19,10 +23,16 @@ const app = express();
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded());
-app.use(morgan("dev"));
 app.use(cookieParser(SECRET));
 app.use(settings.settingsHandler);
 app.use(session.sessionHandler);
+
+const settingsRouter = express.Router();
+settingsRouter.use("/toggle-theme", settings.themeToggle);
+settingsRouter.use("/accept-cookies", settings.acceptCookies);
+settingsRouter.use("/decline-cookies", settings.declineCookies);
+settingsRouter.use("/manage-cookies", settings.manageCookies);
+app.use("/settings", settingsRouter);
 
 const authRouter = express.Router();
 authRouter.get("/signup", auth.signup_get);
@@ -35,7 +45,8 @@ app.use("/auth", authRouter);
 app.get("/", (req, res) => {  
   res.render("kategorie", {
     title: "Kategorie wisielca",
-    kategorie: wisielec.getCategorySummaries()
+    kategorie: wisielec.getCategorySummaries(),
+    user: res.locals.user
   });
 });
 
@@ -51,26 +62,26 @@ app.get("/:id_kategori", (req, res) => {
   }
 });
 
-app.post("/:id_kategori/new", (req, res) => {
+app.post("/:id_kategori/new",auth.login_required,(req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
     res.sendStatus(404);
   } else {
-    wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo});
+    wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo},user);
     ile_slowplus(id_kategori)
     res.redirect(`/${id_kategori}`);
   }
 });
-app.post("/:id_kategori/edit", (req, res) => {
+app.post("/:id_kategori/edit",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
     res.sendStatus(404);
-  } else {
+  } else if(wisielec.cardEditableBy(req.body.stare_slowo,user)){
     wisielec.editCard(id_kategori, {stare_slowo: req.body.stare_slowo,nowe_slowo: req.body.nowe_slowo});
     res.redirect(`/${id_kategori}`);
   }
 });
-app.post("/:id_kategori/delete", (req, res) => {
+app.post("/:id_kategori/delete",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
     res.sendStatus(404);

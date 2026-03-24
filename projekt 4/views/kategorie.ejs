@@ -8,6 +8,11 @@
   </head>
   <body>
     <main>
+      <% if (user) { %>
+      <p>Zalogowany <%= user.username %>  <a href="/auth/logout">Wyloguj się</a></p>
+      <% } else { %>
+      <a href="/auth/login">Zaloguj się</a>
+      <% } %>
       <h1><%= title %></h1>
       <ul id="kategorie">
         <% kategorie.forEach(function(kategoria){ %>
