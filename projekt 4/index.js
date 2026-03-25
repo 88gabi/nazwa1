@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
   res.render("kategorie", {
     title: "Kategorie wisielca",
     kategorie: wisielec.getCategorySummaries(),
-    user: res.locals.user
+    uzytkownik: res.locals.user
   });
 });
 
@@ -67,7 +67,7 @@ app.post("/:id_kategori/new",auth.login_required,(req, res) => {
   if (!wisielec.hasCategory(id_kategori)) {
     res.sendStatus(404);
   } else {
-    wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo},user);
+    wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo},res.locals.user);
     ile_slowplus(id_kategori)
     res.redirect(`/${id_kategori}`);
   }
@@ -75,19 +75,25 @@ app.post("/:id_kategori/new",auth.login_required,(req, res) => {
 app.post("/:id_kategori/edit",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
-    res.sendStatus(404);//POPRAAAAWIC ;)))))))))))))))))
+    res.sendStatus(404);
   } else if(wisielec.cardEditableBy(req.body.stare_slowo,res.locals.user)){
     wisielec.editCard(id_kategori, {stare_slowo: req.body.stare_slowo,nowe_slowo: req.body.nowe_slowo});
     res.redirect(`/${id_kategori}`);
+  }
+  else{
+    res.sendStatus(403);
   }
 });
 app.post("/:id_kategori/delete",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
   if (!wisielec.hasCategory(id_kategori)) {
     res.sendStatus(404);
-  } else {
+  } else if(wisielec.cardEditableBy(req.body.usun_slowo,res.locals.user)){
     wisielec.deleteCard(id_kategori,  req.body.usun_slowo);
     res.redirect(`/${id_kategori}`);
+  }
+  else{
+    res.sendStatus(403);
   }
 });
 app.get("/:id_kategori/graj", (req, res) => {

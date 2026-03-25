@@ -32,7 +32,7 @@ export async function signup_post(req, res) {
   if (Object.entries(form.errors).length == 0) {
     let user = await createUser(form.data["username"], form.data["password"]);
     if (user != null) {
-      createSession(user.id, res);
+      createSession(user.user_id, res);
       res.redirect(nextUrl || "/");
       return;
     } else {

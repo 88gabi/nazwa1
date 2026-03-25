@@ -1,1 +1,11 @@
 
+ODPALENIE PROJEKTU 1 RAZ WRAZ Z DANYMI TESTOWYMI:
+npm run generate_env
+POPULATE_DB=1 node index.js
+
+KAZDE KOLEJNE:
+node index.js
+
+KONTO ADMINA: admin, haslo: changeme
+KONTO STUDENTA(wlasciciel haseł z danych testowych): student, haslo: changeme
+

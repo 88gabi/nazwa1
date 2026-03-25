@@ -50,11 +50,11 @@ const db_ops = {
   ),
 
   insert_card_by_id: db.prepare(
-    `INSERT INTO slowa (id_kategori, slowo,author_id) VALUES (
+    `INSERT INTO slowa (id_kategori ,slowo,author_id) VALUES (
       (SELECT id_kategori FROM kategorie WHERE nazwa = ?),
       ?,?
     )
-    RETURNING id, slowo,author_id;`
+    RETURNING id,  slowo,author_id;`
   ),
 
   get_kategorie: db.prepare(
@@ -122,8 +122,8 @@ export function getCategory(nazwa) {
   }
   return null;
 }
-export function addCard(categoryId, card,user) {
-  return db_ops.insert_card_by_id.get(categoryId, card.tekst,user.user_id);
+export function addCard(categoryId, card,uzytkownik) {
+  return db_ops.insert_card_by_id.get(categoryId, card.tekst,uzytkownik.id);
 }
 export function addCategory(new_category) {
   return db_ops.insert_category.get(new_category);
@@ -165,8 +165,8 @@ export function validateCardData(card) {
   }
   return errors;
 }
-function cardEditableBy(stare_slowo,user) {
-  return user != null && ( db_ops.get_author_id_by_slowo.get(stare_slowo).author_id === user.id || user.is_admin);
+function cardEditableBy(stare_slowo,uzytkownik) {
+  return uzytkownik != null && ( db_ops.get_author_id_by_slowo.get(stare_slowo).author_id === uzytkownik.id || uzytkownik.is_admin);
 }
 export default {
   getCategorySummaries,
