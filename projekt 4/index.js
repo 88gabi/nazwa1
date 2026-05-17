@@ -3,11 +3,9 @@ import express from "express";
 import wisielec, { gra, ile_slow, ile_slowplus } from "./models/wisi.js";
 import session from "./models/session.js";
 import auth from "./controllers/auth.js";
-import settings from "./models/settings.js";
 import cookieParser from "cookie-parser";
 import user from "./models/user.js";
 const port = process.env.PORT || 8000;
-const LAST_VIEWED_COOKIE = "__Host-fisz-last-viewed";
 const ONE_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH = 30 * ONE_DAY;
 const SECRET = process.env.SECRET;
@@ -24,15 +22,8 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded());
 app.use(cookieParser(SECRET));
-app.use(settings.settingsHandler);
-app.use(session.sessionHandler);
 
-const settingsRouter = express.Router();
-settingsRouter.use("/toggle-theme", settings.themeToggle);
-settingsRouter.use("/accept-cookies", settings.acceptCookies);
-settingsRouter.use("/decline-cookies", settings.declineCookies);
-settingsRouter.use("/manage-cookies", settings.manageCookies);
-app.use("/settings", settingsRouter);
+app.use(session.sessionHandler);
 
 const authRouter = express.Router();
 authRouter.get("/signup", auth.signup_get);
@@ -81,7 +72,7 @@ app.post("/:id_kategori/edit",auth.login_required, (req, res) => {
     res.redirect(`/${id_kategori}`);
   }
   else{
-    res.sendStatus(403);
+    res.render("nie_twoja_fiszka");
   }
 });
 app.post("/:id_kategori/delete",auth.login_required, (req, res) => {
@@ -93,7 +84,7 @@ app.post("/:id_kategori/delete",auth.login_required, (req, res) => {
     res.redirect(`/${id_kategori}`);
   }
   else{
-    res.sendStatus(403);
+   res.render("nie_twoja_fiszka");
   }
 });
 app.get("/:id_kategori/graj", (req, res) => {

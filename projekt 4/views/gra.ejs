@@ -18,7 +18,7 @@
   </div>
   <p id="wyg"></p>
   <p id="zla_lit">Zła litera</p>
-  <a id="link" style="display:none;" href='/zwierze/graj'>Od nowa</a>
+  <a id="link" style="display:none;" href='/<%= title %>/graj'>Od nowa</a>
 </body>
 <script>
   slowo1 = "<%=naz%>"
@@ -32,16 +32,21 @@
   document.getElementById("zakryty").innerText = zakryte;
   document.getElementById("przyc").addEventListener("click", () => {
     var litera = document.getElementById('litera').value;
-    for (let i = 0; i < slowo.length; i++) {
-      if (slowo[i] == litera) {
-        zakryte[i] = '[' + litera + ']';
-         document.getElementById("zla_lit").style.display = 'none';
-      }
-      else{
-         document.getElementById("zla_lit").style.display = 'inline';
-      }
-    }
-    gra = false;
+    let trafiona = false;
+
+for (let i = 0; i < slowo.length; i++) {
+  if (slowo[i] == litera) {
+    zakryte[i] = '[' + litera + ']';
+    trafiona = true;
+  }
+}
+
+if (trafiona) {
+  document.getElementById("zla_lit").style.display = 'none';
+} else {
+  document.getElementById("zla_lit").style.display = 'inline';
+}
+    grac = false;
     for (let i = 0; i < slowo.length; i++) {
       if (zakryte[i] == '[ ]') {
         gra = true;
