@@ -1,6 +1,8 @@
 
 ODPALENIE PROJEKTU 1 RAZ WRAZ Z DANYMI TESTOWYMI:
+npm install dotenv
 npm run generate_env
+
 POPULATE_DB=1 node index.js
 
 KAZDE KOLEJNE:
