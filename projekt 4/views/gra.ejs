@@ -10,7 +10,7 @@
 
   <h1 ><%=title%></h1>
 </head>
-<body>
+<body><% if (!error) { %>
   <p id="zakryty"></p>
   <div>
     <input type="text" name="litera" id="litera" maxlength="1" minlength="1">
@@ -19,11 +19,14 @@
   <p id="wyg"></p>
   <p id="zla_lit">Zła litera</p>
   <a id="link" style="display:none;" href='/<%= title %>/graj'>Od nowa</a>
+  <p id="zgadniete"></p>
 </body>
+
 <script>
   slowo1 = "<%=naz%>"
   grac = true;
   zakryte = []
+  zgadniete=""
   slowo = slowo1.split('')
   for (let i = 0; i < slowo.length; i++) {
     zakryte.push('[ ]')
@@ -33,7 +36,14 @@
   document.getElementById("przyc").addEventListener("click", () => {
     var litera = document.getElementById('litera').value;
     let trafiona = false;
-
+if(!zgadniete.includes(litera)){
+  if(zgadniete==""){
+    zgadniete+=litera;
+  }
+  else{
+  zgadniete+=","+litera;}
+  document.getElementById("zgadniete").innerHTML="Zgadnięte litery: "+zgadniete;
+}
 for (let i = 0; i < slowo.length; i++) {
   if (slowo[i] == litera) {
     zakryte[i] = '[' + litera + ']';
@@ -60,5 +70,5 @@ if (trafiona) {
     }
     document.getElementById("zakryty").innerText = zakryte;
   });
-</script>
+</script><% } else{ %><p><%}%><%=error%></p>
 </html>

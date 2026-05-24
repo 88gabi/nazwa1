@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import wisielec, { gra, ile_slow, ile_slowplus } from "./models/wisi.js";
+import wisielec, { gra, ile_slow } from "./models/wisi.js";
 import session from "./models/session.js";
 import auth from "./controllers/auth.js";
 import cookieParser from "cookie-parser";
@@ -59,32 +59,31 @@ app.post("/:id_kategori/new",auth.login_required,(req, res) => {
     res.sendStatus(404);
   } else {
     wisielec.addCard(id_kategori, {id: wisielec.ile_slow(id_kategori)+1,tekst: req.body.slowo},res.locals.user);
-    ile_slowplus(id_kategori)
     res.redirect(`/${id_kategori}`);
   }
 });
 app.post("/:id_kategori/edit",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
-  if (!wisielec.hasCategory(id_kategori)) {
+  if (!wisielec.hasCategory(id_kategori) || !wisielec.hasSlowo(req.body.stare_slowo,id_kategori)) {
     res.sendStatus(404);
   } else if(wisielec.cardEditableBy(req.body.stare_slowo,res.locals.user)){
     wisielec.editCard(id_kategori, {stare_slowo: req.body.stare_slowo,nowe_slowo: req.body.nowe_slowo});
     res.redirect(`/${id_kategori}`);
   }
   else{
-    res.render("nie_twoja_fiszka");
+    res.render("nie_twoja_karta");
   }
 });
 app.post("/:id_kategori/delete",auth.login_required, (req, res) => {
   const id_kategori = req.params.id_kategori;
-  if (!wisielec.hasCategory(id_kategori)) {
+  if (!wisielec.hasCategory(id_kategori) || !wisielec.hasSlowo(req.body.usun_slowo,id_kategori)) {
     res.sendStatus(404);
   } else if(wisielec.cardEditableBy(req.body.usun_slowo,res.locals.user)){
     wisielec.deleteCard(id_kategori,  req.body.usun_slowo);
     res.redirect(`/${id_kategori}`);
   }
   else{
-   res.render("nie_twoja_fiszka");
+   res.render("nie_twoja_karta");
   }
 });
 app.get("/:id_kategori/graj", (req, res) => {
@@ -93,12 +92,20 @@ app.get("/:id_kategori/graj", (req, res) => {
     res.sendStatus(404);
   } else {
     
-    let losowe_id=Math.floor(Math.random()*ile_slow(kategoria.nazwa));
-    res.render("gra", {
-      title: kategoria.nazwa,
-      num: losowe_id,
-      naz:gra(kategoria.nazwa,losowe_id)
-    })
+    const slowo = gra(kategoria.nazwa);
+
+if (!slowo) {
+  return res.render("gra", {
+    title: kategoria.nazwa,
+    naz: null,
+    error: "Brak słów w kategorii"
+  });
+}
+
+res.render("gra", {
+  title: kategoria.nazwa,
+  naz: slowo
+});
   
 }});
 

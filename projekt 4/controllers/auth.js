@@ -98,7 +98,7 @@ function logout(req, res) {
 
 function login_required(req, res, next) {
   if (res.locals.user == null) {
-    res.redirect(`/auth/login?next=${encodeURIComponent(req.path)}`);
+    res.redirect(`/auth/login?next=/${req.params.id_kategori}`);
     return;
   }
   next();

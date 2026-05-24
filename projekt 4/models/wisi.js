@@ -64,6 +64,9 @@ const db_ops = {
   get_category_by_id: db.prepare(
     "SELECT id_kategori, nazwa FROM kategorie WHERE nazwa = ?;"
   ),
+  get_slowo_by_id: db.prepare(
+    "SELECT id,slowo FROM slowa WHERE slowo = ? and id_kategori = ?"
+  ),
   get_id_by_slowo: db.prepare(
     "SELECT id FROM slowa WHERE slowo = ?;"
   ),
@@ -77,7 +80,19 @@ const db_ops = {
     "DELETE FROM slowa WHERE id = ? and id_kategori = ? RETURNING id, slowo;"
   ),
   get_author_id_by_slowo :db.prepare(
-    "select author_id from slowa WHERE slowo = ?;")
+    "select author_id from slowa WHERE slowo = ?;"),
+    get_random_card_by_category: db.prepare(`
+  SELECT slowo
+  FROM slowa
+  WHERE id_kategori = ?
+  ORDER BY RANDOM()
+  LIMIT 1;
+`),
+count_slowo:db.prepare(`
+  SELECT count(slowo) as 'ile'
+  FROM slowa
+  WHERE id_kategori = ?;
+`)
 };
 let admin = await user.createUser("admin", "changeme");
 if (admin) {
@@ -114,6 +129,10 @@ export function hasCategory(nazwa) {
   let category = db_ops.get_category_by_id.get(nazwa);
   return category != null;
 }
+export function hasSlowo(nazwa,id) {
+  let category = db_ops.get_slowo_by_id.get(nazwa,db_ops.get_category_by_id.get(id).id_kategori);
+  return category != null;
+}
 export function getCategory(nazwa) {
   let category = db_ops.get_category_by_id.get(nazwa);
   if (category != null) {
@@ -141,15 +160,15 @@ export function deleteCard(categoryId,slowo) {
   return db_ops.delete_cards_by_slowo.get(id.id,category.id_kategori);
 }
 export function ile_slow(categoryId) {
-    return kategorie_kart[categoryId].ile_slow;
+    return db_ops.count_slowo.get(categoryId).ile;
 }
-export function ile_slowplus(categoryId){
-     kategorie_kart[categoryId].ile_slow= kategorie_kart[categoryId].ile_slow+1;
-}
-export function gra(id,numer_karty){
-    const kopia={...kategorie_kart[id].slowo[numer_karty]};
-    const zgadywane_slowo=kopia.tekst;
-    return zgadywane_slowo
+
+export function gra(categoryName) {
+  let category = db_ops.get_category_by_id.get(categoryName);
+  if (!category) return null;
+  let card = db_ops.get_random_card_by_category.get(category.id_kategori);
+  if (!card) return null;
+  return card.slowo;
 }
 export function validateCardData(card) {
   var errors = [];
@@ -171,6 +190,7 @@ function cardEditableBy(stare_slowo,uzytkownik) {
 export default {
   getCategorySummaries,
   hasCategory,
+  hasSlowo,
   getCategory,
   addCard,
   editCard,
